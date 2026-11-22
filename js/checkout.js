@@ -2,7 +2,7 @@
    DOKAN — checkout.js
    ============================================================ */
 
-document.addEventListener("DOMContentLoaded", () => {
+whenReady(() => {
   const user = requireAuth("checkout.html");
   if (!user) return;
 
@@ -31,27 +31,38 @@ document.addEventListener("DOMContentLoaded", () => {
   const total = CartDB.total();
   document.getElementById("summaryTotal").textContent = formatPrice(total);
 
-  document.getElementById("checkoutForm").addEventListener("submit", (e) => {
+  document.getElementById("checkoutForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const order = OrdersDB.create({
-      userEmail: user.email,
-      customerName: document.getElementById("checkoutName").value.trim(),
-      phone: document.getElementById("checkoutPhone").value.trim(),
-      address: document.getElementById("checkoutAddress").value.trim(),
-      paymentMethod: document.getElementById("checkoutPayment").value,
-      items: items.map((i) => ({
-        productId: i.productId,
-        name: i.product.name,
-        price: i.product.price,
-        qty: i.qty,
-        lineTotal: i.lineTotal,
-      })),
-      total,
-    });
+    const submitBtn = e.target.querySelector("[type=submit]");
+    if (submitBtn) submitBtn.disabled = true;
 
-    CartDB.clear();
-    localStorage.setItem("dokan_last_order_id", order.id);
-    window.location.href = "success.html?orderId=" + order.id;
+    try {
+      // Wait until Supabase has saved the order before moving on.
+      const order = await OrdersDB.create({
+        userEmail: user.email,
+        customerName: document.getElementById("checkoutName").value.trim(),
+        phone: document.getElementById("checkoutPhone").value.trim(),
+        address: document.getElementById("checkoutAddress").value.trim(),
+        paymentMethod: document.getElementById("checkoutPayment").value,
+        items: items.map((i) => ({
+          productId: i.productId,
+          name: i.product.name,
+          color: i.color || "",
+          price: i.product.price,
+          qty: i.qty,
+          lineTotal: i.lineTotal,
+        })),
+        total,
+      });
+
+      CartDB.clear();
+      localStorage.setItem("dokan_last_order_id", order.id);
+      window.location.href = "success.html?orderId=" + order.id;
+    } catch (err) {
+      console.error("Dokan: order was not saved", err);
+      alert("Sorry, we couldn't place your order: " + err.message);
+      if (submitBtn) submitBtn.disabled = false;
+    }
   });
 });

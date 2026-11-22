@@ -2,7 +2,7 @@
    DOKAN — signup.js
    ============================================================ */
 
-document.addEventListener("DOMContentLoaded", () => {
+whenReady(() => {
   renderHeader({ showSearch: false });
   renderFooter();
 
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("signupForm");
   const errorBox = document.getElementById("formError");
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = document.getElementById("signupName").value.trim();
     const email = document.getElementById("signupEmail").value.trim();
@@ -32,8 +32,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const result = signup({ name, email, password });
+    const result = await signup({ name, email, password });
     if (!result.ok) {
+      errorBox.textContent = result.message;
+      errorBox.style.display = "block";
+      return;
+    }
+    if (result.needsConfirmation) {
       errorBox.textContent = result.message;
       errorBox.style.display = "block";
       return;
@@ -42,5 +47,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const redirect = params.get("redirect") || "index.html";
     window.location.href = redirect;
+  });
+
+  document.getElementById("googleBtn").addEventListener("click", async () => {
+    const params = new URLSearchParams(window.location.search);
+    try {
+      await signInWithGoogle(params.get("redirect") || "index.html");
+    } catch (err) {
+      errorBox.textContent = "Google sign-in isn't available right now: " + err.message;
+      errorBox.style.display = "block";
+    }
   });
 });

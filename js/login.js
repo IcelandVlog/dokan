@@ -2,7 +2,7 @@
    DOKAN — login.js
    ============================================================ */
 
-document.addEventListener("DOMContentLoaded", () => {
+whenReady(() => {
   renderHeader({ showSearch: false });
   renderFooter();
 
@@ -14,12 +14,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
   const errorBox = document.getElementById("formError");
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
 
-    const result = login({ email, password });
+    const result = await login({ email, password });
     if (!result.ok) {
       errorBox.textContent = result.message;
       errorBox.style.display = "block";
@@ -29,5 +29,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const redirect = params.get("redirect") || "index.html";
     window.location.href = redirect;
+  });
+
+  document.getElementById("googleBtn").addEventListener("click", async () => {
+    const params = new URLSearchParams(window.location.search);
+    try {
+      await signInWithGoogle(params.get("redirect") || "index.html");
+    } catch (err) {
+      errorBox.textContent = "Google sign-in isn't available right now: " + err.message;
+      errorBox.style.display = "block";
+    }
   });
 });

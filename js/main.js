@@ -25,12 +25,35 @@ function productCard(product) {
   `;
 }
 
+/* Words that mean the same thing, so "television" finds "TV" products and vice versa. */
+const SEARCH_SYNONYMS = {
+  tv: ["television", "telly"],
+  television: ["tv"],
+  telly: ["tv"],
+};
+
+/* Plain text of a stored description. DOMParser does not run scripts or image loads. */
+function plainText(html) {
+  return new DOMParser().parseFromString(html || "", "text/html").body.textContent || "";
+}
+
+/* Every word typed must appear somewhere in the product's name, category,
+   brand or details (or a synonym of it). */
+function productMatchesSearch(p, query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  const haystack = [p.name, p.category, p.brand, plainText(p.description)].join(" ").toLowerCase();
+  return q.split(/\s+/).every((term) => {
+    const options = [term, ...(SEARCH_SYNONYMS[term] || [])];
+    return options.some((option) => haystack.includes(option));
+  });
+}
+
 function getFilteredProducts() {
   const all = ProductsDB.all();
   return all.filter((p) => {
     const matchesCategory = activeCategory === "All" || p.category === activeCategory;
-    const matchesSearch = (p.name + " " + p.category).toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return matchesCategory && productMatchesSearch(p, searchTerm);
   });
 }
 
@@ -94,7 +117,7 @@ function onSearchInput(value) {
   renderProducts();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+whenReady(() => {
   renderHeader();
   renderFooter();
   renderCategoryChips();

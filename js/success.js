@@ -2,7 +2,7 @@
    DOKAN — success.js
    ============================================================ */
 
-document.addEventListener("DOMContentLoaded", () => {
+whenReady(() => {
   renderHeader({ showSearch: false });
   renderFooter();
 
@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     <div class="summary-card">
       ${order.items
         .map(
-          (i) => `<div class="summary-row"><span>${escapeHtml(i.name)} <span class="muted">× ${i.qty}</span></span><span>${formatPrice(i.lineTotal)}</span></div>`
+          (i) => `<div class="summary-row"><span>${itemName(i)} <span class="muted">× ${i.qty}</span></span><span>${formatPrice(i.lineTotal)}</span></div>`
         )
         .join("")}
       <div class="summary-row summary-row-total"><span>Total paid</span><span>${formatPrice(order.total)}</span></div>

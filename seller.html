@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My shop — Dokan</title>
+<link rel="stylesheet" href="css/style.css" />
+<link rel="icon" type="image/link" href="https://i.postimg.cc/zBSqx8kS/Screenshot-2026-07-11-104056.png" />
+</head>
+<body>
+
+<header id="siteHeader"></header>
+
+<main class="container admin-layout">
+  <div class="page-title-row">
+    <h1>My shop</h1>
+    <a class="btn btn-outline btn-sm" href="index.html">← Back to shop</a>
+  </div>
+
+  <div class="seller-layout">
+    <div>
+      <h2>Your products</h2>
+      <div id="sellerProductList"></div>
+    </div>
+
+    <form class="admin-form" id="sellerForm">
+      <h3 id="sellerFormTitle">Add a product</h3>
+      <div class="field">
+        <label for="spName">Name</label>
+        <input type="text" id="spName" required />
+      </div>
+      <div class="field">
+        <label for="spCategory">Category</label>
+        <input type="text" id="spCategory" list="spCategoryList" required />
+        <datalist id="spCategoryList"></datalist>
+      </div>
+      <div class="field">
+        <label for="spBrand">Brand (optional)</label>
+        <input type="text" id="spBrand" />
+      </div>
+      <div class="field">
+        <label for="spPrice">Price (BDT ৳)</label>
+        <input type="number" id="spPrice" min="0" step="0.01" required />
+      </div>
+      <div class="field">
+        <label for="spStock">Stock</label>
+        <input type="number" id="spStock" min="0" step="1" required />
+      </div>
+      <div class="field">
+        <label for="spImage">Main image URL (optional)</label>
+        <input type="url" id="spImage" placeholder="https://…" />
+      </div>
+      <div class="field">
+        <label for="spExtraImages">More image URLs (optional, one per line)</label>
+        <textarea id="spExtraImages" rows="3"></textarea>
+      </div>
+      <div class="field">
+        <label for="spDescription">Description</label>
+        <textarea id="spDescription" rows="5" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block" id="sellerSubmit">Add product</button>
+      <button type="button" class="btn btn-outline btn-block" id="sellerCancel" hidden>Cancel edit</button>
+      <p class="form-success" id="sellerMsg"></p>
+    </form>
+  </div>
+</main>
+
+<footer id="siteFooter"></footer>
+
+<script src="js/error-handler.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/components.js"></script>
+<script src="js/seller.js"></script>
+</body>
+</html>

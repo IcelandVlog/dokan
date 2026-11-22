@@ -1,31 +1,26 @@
 /* ============================================================
    DOKAN — db.js
-   Everything this "backend" needs lives in localStorage.
-   This file seeds sample data on first run and exposes small
-   helper functions every other page/script can call.
+   Data layer backed by Supabase.
+
+   On every page load we fetch products, orders, profiles and the
+   current session from Supabase into an in-memory cache. The helper
+   objects below (ProductsDB, OrdersDB, ...) read from that cache
+   synchronously, so page code stays simple. Writes update the cache
+   immediately and are then saved to Supabase.
+
+   Cart, theme and the admin-panel gate stay in localStorage: they
+   are per-device conveniences, not shared data.
    ============================================================ */
 
 const DB_KEYS = {
-  PRODUCTS: "dokan_products",
-  USERS: "dokan_users",
-  SESSION: "dokan_session",
   CART: "dokan_cart",
-  ORDERS: "dokan_orders",
   THEME: "dokan_theme",
-  ADMIN_GATE: "dokan_admin_gate",
 };
 
-/* Demo admin access code — change this to whatever you like.
-   This is a simple front-end gate, not real security: anyone who
-   reads admin.js can see it. For a real store this check would
-   live on a server instead. */
-const ADMIN_ACCESS_CODE = "2026DOKAN";
-
-/* ---------- storage layer ----------
+/* ---------- storage layer (localStorage for cart/theme/gate) ----------
    Some browsers (or file:// pages) block localStorage entirely.
-   storageGet/Set try real localStorage first and silently fall
-   back to an in-memory object so the app still renders — it just
-   won't remember data across a page refresh in that fallback case. */
+   storageGet/Set fall back to an in-memory object so the app still
+   renders — it just won't remember those settings across a refresh. */
 const memoryStore = {};
 let storageBlocked = false;
 
@@ -62,51 +57,137 @@ function showStorageWarning() {
   bar.style.cssText =
     "background:#C0533E;color:#fff;text-align:center;padding:10px 16px;font:600 13px/1.4 Inter,sans-serif;position:sticky;top:0;z-index:999;";
   bar.textContent =
-    "Your browser is blocking local storage on this page (common when opening the file directly). Data won't be saved between visits — run this through a local server (see README) to fix it.";
+    "Your browser is blocking local storage on this page (common when opening the file directly). Your cart and theme won't be saved between visits — run this through a local server (see README) to fix it.";
   document.body.prepend(bar);
 }
 
-/* ---------- seed data (first run only) ---------- */
-function seedDatabase() {
-  if (!storageGet(DB_KEYS.PRODUCTS)) {
-    const products = [
-      { id: "p01", name: "Wireless Headphones", category: "Electronics", price: 89.99, stock: 24, image: "https://picsum.photos/seed/dokan-headphones/600/600", description: "Over-ear wireless headphones with active noise cancellation and 30-hour battery life. Foldable design, plush ear cushions, and a travel case included." },
-      { id: "p02", name: "Smart Watch", category: "Electronics", price: 129.00, stock: 15, image: "https://picsum.photos/seed/dokan-smartwatch/600/600", description: "Track workouts, heart rate, and sleep. Always-on AMOLED display, 5-day battery, and swim-proof design." },
-      { id: "p03", name: "Bluetooth Speaker", category: "Electronics", price: 49.50, stock: 40, image: "https://picsum.photos/seed/dokan-speaker/600/600", description: "Compact speaker with room-filling sound, 12-hour battery, and IPX6 water resistance. Pairs with two devices at once." },
-      { id: "p04", name: "Mechanical Keyboard", category: "Electronics", price: 74.00, stock: 18, image: "https://picsum.photos/seed/dokan-keyboard/600/600", description: "Hot-swappable mechanical keyboard with tactile brown switches, per-key RGB, and a aircraft-grade aluminium frame." },
-      { id: "p05", name: "Denim Jacket", category: "Fashion", price: 59.99, stock: 30, image: "https://picsum.photos/seed/dokan-jacket/600/600", description: "Classic mid-wash denim jacket with a relaxed fit, button front, and chest pockets. A wardrobe staple for every season." },
-      { id: "p06", name: "Leather Sneakers", category: "Fashion", price: 84.00, stock: 22, image: "https://picsum.photos/seed/dokan-sneakers/600/600", description: "Hand-finished leather sneakers with a cushioned insole and a grip rubber sole built for everyday walking." },
-      { id: "p07", name: "Sunglasses", category: "Fashion", price: 24.99, stock: 50, image: "https://picsum.photos/seed/dokan-sunglasses/600/600", description: "UV400 protective lenses in a lightweight acetate frame. Comes with a hard case and cleaning cloth." },
-      { id: "p08", name: "Canvas Tote Bag", category: "Fashion", price: 19.50, stock: 60, image: "https://picsum.photos/seed/dokan-tote/600/600", description: "Heavy-duty canvas tote with reinforced stitching and an interior pocket. Big enough for a day of errands." },
-      { id: "p09", name: "Ceramic Mug Set", category: "Home & Living", price: 22.00, stock: 35, image: "https://picsum.photos/seed/dokan-mug/600/600", description: "Set of two hand-glazed ceramic mugs, microwave and dishwasher safe. Each piece is subtly one of a kind." },
-      { id: "p10", name: "Table Lamp", category: "Home & Living", price: 39.99, stock: 20, image: "https://picsum.photos/seed/dokan-lamp/600/600", description: "Warm-glow table lamp with a linen shade and a solid oak base. Three-step touch dimmer built in." },
-      { id: "p11", name: "Woven Throw Blanket", category: "Home & Living", price: 34.50, stock: 28, image: "https://picsum.photos/seed/dokan-blanket/600/600", description: "Soft cotton-blend throw, woven in a classic diamond pattern. Machine washable and generously sized." },
-      { id: "p12", name: "Minimalist Notebook Set", category: "Stationery", price: 12.00, stock: 70, image: "https://picsum.photos/seed/dokan-notebook/600/600", description: "Pack of three dot-grid notebooks with a stitched spine and a slim elastic closure. Fountain-pen friendly paper." },
-      { id: "p13", name: "The Design of Everyday Things", category: "Books", price: 18.00, stock: 25, image: "https://picsum.photos/seed/dokan-book1/600/600", description: "Don Norman's classic on how good design bridges the gap between people and the objects they use." },
-      { id: "p14", name: "Atomic Habits", category: "Books", price: 16.50, stock: 33, image: "https://picsum.photos/seed/dokan-book2/600/600", description: "James Clear's practical guide to building good habits and breaking bad ones, one small change at a time." },
-    ];
-    storageSet(DB_KEYS.PRODUCTS, JSON.stringify(products));
-  }
+/* ---------- Supabase cache ---------- */
+const cache = {
+  products: [],
+  orders: [],
+  users: [],
+  currentUser: null,
+};
 
-  if (!storageGet(DB_KEYS.USERS)) {
-    const users = [
-      { id: "u_admin", name: "Store Admin", email: "admin@dokan.com", password: "admin123", role: "admin" },
-    ];
-    storageSet(DB_KEYS.USERS, JSON.stringify(users));
-  }
-
-  if (!storageGet(DB_KEYS.CART)) {
-    storageSet(DB_KEYS.CART, JSON.stringify([]));
-  }
-
-  if (!storageGet(DB_KEYS.ORDERS)) {
-    storageSet(DB_KEYS.ORDERS, JSON.stringify([]));
-  }
+/* Database rows use snake_case and numeric columns come back as
+   strings, so convert them to the shape the page code expects. */
+function toProduct(r) {
+  const extra = Array.isArray(r.images) ? r.images.filter(Boolean) : [];
+  const images = extra.length ? extra : r.image ? [r.image] : [];
+  return {
+    id: r.id,
+    name: r.name,
+    category: r.category,
+    brand: r.brand || "",
+    price: Number(r.price),
+    comparePrice: r.compare_price == null ? null : Number(r.compare_price),
+    colors: Array.isArray(r.colors) ? r.colors.filter(Boolean) : [],
+    stock: Number(r.stock),
+    image: images[0] || "",
+    images,
+    description: r.description || "",
+    sellerId: r.seller_id || null,
+  };
 }
-try {
-  seedDatabase();
-} catch (err) {
-  console.error("Dokan: seeding failed, continuing with empty state.", err);
+function toProductRow(p) {
+  const images = (p.images || []).filter(Boolean);
+  if (!images.length && p.image) images.push(p.image);
+  return {
+    id: p.id,
+    name: p.name,
+    category: p.category,
+    brand: p.brand || null,
+    price: p.price,
+    compare_price: p.comparePrice || null,
+    colors: p.colors || [],
+    stock: p.stock,
+    image: images[0] || null,
+    images,
+    description: p.description,
+    seller_id: p.sellerId || null,
+  };
+}
+function toOrder(r) {
+  return {
+    id: r.id,
+    userId: r.user_id,
+    userEmail: r.user_email,
+    customerName: r.customer_name,
+    phone: r.phone,
+    address: r.address,
+    paymentMethod: r.payment_method,
+    items: r.items || [],
+    total: Number(r.total),
+    status: r.status,
+    date: r.created_at,
+  };
+}
+function toUser(r) {
+  return { id: r.id, name: r.name, email: r.email, role: r.role };
+}
+
+/* Re-reads the signed-in user's profile into the cache. */
+async function refreshCurrentUser() {
+  const { data: sessionData } = await sb.auth.getSession();
+  const session = sessionData.session;
+  if (!session) {
+    cache.currentUser = null;
+    return;
+  }
+  const { data: profile, error } = await sb.from("profiles").select("*").eq("id", session.user.id).maybeSingle();
+  if (error) throw error;
+  if (!profile) {
+    cache.currentUser = null;
+    return;
+  }
+  const user = toUser(profile);
+  const i = cache.users.findIndex((u) => u.id === user.id);
+  if (i >= 0) cache.users[i] = user;
+  else cache.users.push(user);
+  cache.currentUser = user;
+}
+
+/* Fetches everything the site needs. Runs once per page load. */
+async function loadFromSupabase() {
+  const [products, orders, profiles] = await Promise.all([
+    sb.from("products").select("*").order("created_at", { ascending: false }),
+    sb.from("orders").select("*").order("created_at", { ascending: true }),
+    sb.from("profiles").select("*").order("created_at", { ascending: true }),
+  ]);
+  for (const res of [products, orders, profiles]) {
+    if (res.error) throw new Error("Could not load data from Supabase: " + res.error.message);
+  }
+  cache.products = products.data.map(toProduct);
+  cache.orders = orders.data.map(toOrder);
+  cache.users = profiles.data.map(toUser);
+  await refreshCurrentUser();
+}
+
+/* Pages wait on this before they render. */
+const DokanReady = loadFromSupabase();
+
+const domReady = new Promise((resolve) => {
+  if (document.readyState !== "loading") resolve();
+  else document.addEventListener("DOMContentLoaded", () => resolve());
+});
+
+/* Use instead of document.addEventListener("DOMContentLoaded", ...)
+   so the page only runs once the Supabase data is in the cache. */
+function whenReady(fn) {
+  Promise.all([domReady, DokanReady]).then(() => fn());
+}
+
+/* Saves a write to Supabase. Cache is already updated, so the page
+   doesn't wait; if the save fails we tell the user to reload. */
+function persist(query, what) {
+  return Promise.resolve(query)
+    .then(({ error }) => {
+      if (error) throw error;
+    })
+    .catch((err) => {
+      console.error(`Dokan: could not save ${what}`, err);
+      alert(`Couldn't save ${what} to Supabase: ${err.message}\nReload the page to see what is actually stored.`);
+    });
 }
 
 /* ---------- generic helpers ---------- */
@@ -124,79 +205,61 @@ function writeKey(key, value) {
 /* ---------- products ---------- */
 const ProductsDB = {
   all() {
-    return readKey(DB_KEYS.PRODUCTS);
+    return cache.products.slice();
   },
   find(id) {
-    return this.all().find((p) => p.id === id) || null;
+    return cache.products.find((p) => p.id === id) || null;
   },
   add(product) {
-    const products = this.all();
-    product.id = "p" + Date.now();
-    products.unshift(product); // newest product shows first
-    writeKey(DB_KEYS.PRODUCTS, products);
-    return product;
+    const row = toProductRow({ ...product, id: "p" + Date.now() });
+    const saved = toProduct(row);
+    cache.products.unshift(saved); // newest product shows first
+    persist(sb.from("products").insert(row), "the new product");
+    return saved;
   },
   update(id, changes) {
-    const products = this.all().map((p) => (p.id === id ? { ...p, ...changes } : p));
-    writeKey(DB_KEYS.PRODUCTS, products);
+    cache.products = cache.products.map((p) => (p.id === id ? { ...p, ...changes } : p));
+    const updated = this.find(id);
+    if (updated) persist(sb.from("products").update(toProductRow(updated)).eq("id", id), "product changes");
   },
   adjustStock(id, delta) {
-    const products = this.all().map((p) => (p.id === id ? { ...p, stock: Math.max(0, p.stock + delta) } : p));
-    writeKey(DB_KEYS.PRODUCTS, products);
+    const product = this.find(id);
+    if (!product) return;
+    product.stock = Math.max(0, product.stock + delta);
+    persist(sb.from("products").update({ stock: product.stock }).eq("id", id), "stock");
   },
   remove(id) {
-    const products = this.all().filter((p) => p.id !== id);
-    writeKey(DB_KEYS.PRODUCTS, products);
+    cache.products = cache.products.filter((p) => p.id !== id);
+    persist(sb.from("products").delete().eq("id", id), "the product removal");
   },
   categories() {
-    return [...new Set(this.all().map((p) => p.category))];
+    return [...new Set(cache.products.map((p) => p.category))];
   },
 };
 
-/* ---------- users ---------- */
+/* ---------- users (profiles) ---------- */
 const UsersDB = {
   all() {
-    return readKey(DB_KEYS.USERS);
+    return cache.users.slice();
   },
   findByEmail(email) {
-    return this.all().find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
-  },
-  add(user) {
-    const users = this.all();
-    user.id = "u" + Date.now();
-    user.role = "customer";
-    users.push(user);
-    writeKey(DB_KEYS.USERS, users);
-    return user;
+    return cache.users.find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
   },
 };
 
-/* ---------- session ---------- */
+/* ---------- session (the signed-in profile) ---------- */
 const SessionDB = {
-  get() {
-    const raw = storageGet(DB_KEYS.SESSION);
-    if (!raw) return null;
-    try {
-      const value = JSON.parse(raw);
-      return typeof value === "string" && value ? value : null;
-    } catch {
-      return null;
-    }
-  },
-  set(email) {
-    storageSet(DB_KEYS.SESSION, JSON.stringify(email));
-  },
-  clear() {
-    storageRemove(DB_KEYS.SESSION);
-  },
   currentUser() {
-    const email = this.get();
-    if (!email) return null;
-    return UsersDB.findByEmail(email);
+    return cache.currentUser;
   },
 };
 
-/* ---------- cart ---------- */
+/* ---------- cart (localStorage, per device) ---------- */
+/* A cart line is one product in one colour. Plain products have no colour. */
+function lineKey(item) {
+  return item.color ? `${item.productId}::${item.color}` : item.productId;
+}
+
 const CartDB = {
   all() {
     return readKey(DB_KEYS.CART);
@@ -204,27 +267,27 @@ const CartDB = {
   save(items) {
     writeKey(DB_KEYS.CART, items);
   },
-  add(productId, qty = 1) {
+  add(productId, qty = 1, color = "") {
     const cart = this.all();
-    const existing = cart.find((i) => i.productId === productId);
+    const existing = cart.find((i) => i.productId === productId && (i.color || "") === color);
     if (existing) {
       existing.qty += qty;
     } else {
-      cart.push({ productId, qty });
+      cart.push({ productId, color, qty });
     }
     this.save(cart);
   },
-  updateQty(productId, qty) {
+  updateQty(key, qty) {
     let cart = this.all();
     if (qty <= 0) {
-      cart = cart.filter((i) => i.productId !== productId);
+      cart = cart.filter((i) => lineKey(i) !== key);
     } else {
-      cart = cart.map((i) => (i.productId === productId ? { ...i, qty } : i));
+      cart = cart.map((i) => (lineKey(i) === key ? { ...i, qty } : i));
     }
     this.save(cart);
   },
-  remove(productId) {
-    this.save(this.all().filter((i) => i.productId !== productId));
+  remove(key) {
+    this.save(this.all().filter((i) => lineKey(i) !== key));
   },
   clear() {
     this.save([]);
@@ -237,7 +300,7 @@ const CartDB = {
       .map((i) => {
         const product = ProductsDB.find(i.productId);
         if (!product) return null;
-        return { ...i, product, lineTotal: +(product.price * i.qty).toFixed(2) };
+        return { ...i, key: lineKey(i), product, lineTotal: +(product.price * i.qty).toFixed(2) };
       })
       .filter(Boolean);
   },
@@ -251,25 +314,39 @@ const CartDB = {
 /* ---------- orders ---------- */
 const OrdersDB = {
   all() {
-    return readKey(DB_KEYS.ORDERS);
+    return cache.orders.slice();
   },
   byUser(email) {
-    return this.all().filter((o) => o.userEmail === email);
+    return cache.orders.filter((o) => o.userEmail === email);
   },
   find(id) {
-    return this.all().find((o) => o.id === id) || null;
+    return cache.orders.find((o) => o.id === id) || null;
   },
-  create(order) {
-    const orders = this.all();
-    order.id = "ORD" + Date.now();
-    order.date = new Date().toISOString();
-    order.status = "Processing";
-    orders.push(order);
-    writeKey(DB_KEYS.ORDERS, orders);
-    return order;
+  /* Async: resolves once the order is saved, so the caller can
+     safely move on to the success page. Throws on failure. */
+  async create(order) {
+    const user = cache.currentUser;
+    const row = {
+      id: "ORD" + Date.now(),
+      user_id: user ? user.id : null,
+      user_email: order.userEmail,
+      customer_name: order.customerName,
+      phone: order.phone,
+      address: order.address,
+      payment_method: order.paymentMethod,
+      items: order.items,
+      total: order.total,
+      status: "Processing",
+    };
+    const { data, error } = await sb.from("orders").insert(row).select().single();
+    if (error) throw error;
+    const saved = toOrder(data);
+    cache.orders.push(saved);
+    return saved;
   },
   updateStatus(id, status) {
-    const orders = this.all().map((o) => (o.id === id ? { ...o, status } : o));
-    writeKey(DB_KEYS.ORDERS, orders);
+    const order = this.find(id);
+    if (order) order.status = status;
+    persist(sb.from("orders").update({ status }).eq("id", id), "the order status");
   },
 };

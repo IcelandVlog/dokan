@@ -2,7 +2,7 @@
    DOKAN — orders.js (customer order history)
    ============================================================ */
 
-document.addEventListener("DOMContentLoaded", () => {
+whenReady(() => {
   const user = requireAuth("orders.html");
   if (!user) return;
 
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="status-pill">${escapeHtml(o.status)}</span>
       </div>
       <div class="order-card-items">
-        ${o.items.map((i) => `<div class="summary-row"><span>${escapeHtml(i.name)} <span class="muted">× ${i.qty}</span></span><span>${formatPrice(i.lineTotal)}</span></div>`).join("")}
+        ${o.items.map((i) => `<div class="summary-row"><span>${itemName(i)} <span class="muted">× ${i.qty}</span></span><span>${formatPrice(i.lineTotal)}</span></div>`).join("")}
       </div>
       <div class="order-card-total">Total: <strong>${formatPrice(o.total)}</strong></div>
     </div>`

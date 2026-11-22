@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sell on Dokan</title>
+<link rel="stylesheet" href="css/style.css" />
+<link rel="icon" type="image/link" href="https://i.postimg.cc/zBSqx8kS/Screenshot-2026-07-11-104056.png" />
+</head>
+<body>
+
+<header id="siteHeader"></header>
+
+<main>
+  <div class="auth-wrap auth-wide">
+    <div class="auth-card">
+      <h1>Sell on Dokan</h1>
+      <p class="auth-subtitle">Tell us about your shop. If we approve it, we'll email your username and password to the address you give us.</p>
+
+      <div class="form-error" id="applyError"></div>
+      <div class="form-success" id="applySuccess"></div>
+
+      <form id="applyForm">
+        <div class="field">
+          <label for="applyName">Your full name</label>
+          <input type="text" id="applyName" required />
+        </div>
+        <div class="field">
+          <label for="applyEmail">Email (Gmail or any email you read)</label>
+          <input type="email" id="applyEmail" placeholder="you@gmail.com" required />
+        </div>
+        <div class="field">
+          <label for="applyPhone">Phone number</label>
+          <input type="tel" id="applyPhone" required />
+        </div>
+        <div class="field">
+          <label for="applyShop">Shop name</label>
+          <input type="text" id="applyShop" required />
+        </div>
+        <div class="field">
+          <label for="applyCategory">What will you sell?</label>
+          <select id="applyCategory" required></select>
+        </div>
+        <div class="field">
+          <label for="applyAddress">Address</label>
+          <textarea id="applyAddress" rows="2" required></textarea>
+        </div>
+        <div class="field">
+          <label for="applyAbout">Tell us about your products</label>
+          <textarea id="applyAbout" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="applyBtn">Send application</button>
+      </form>
+    </div>
+  </div>
+</main>
+
+<footer id="siteFooter"></footer>
+
+<script src="js/error-handler.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/components.js"></script>
+<script src="js/apply.js"></script>
+</body>
+</html>

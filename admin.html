@@ -15,20 +15,22 @@
   <!-- ACCESS GATE -->
   <div class="auth-wrap" id="adminGate" style="display:none;">
     <div class="auth-card">
-      <h1>Admin access</h1>
-      <p class="auth-subtitle">Enter the store's admin code to continue.</p>
+      <h1>Admin sign in</h1>
+      <p class="auth-subtitle">Only store admin accounts can open this panel.</p>
 
       <div class="form-error" id="gateError"></div>
 
       <form id="gateForm">
         <div class="field">
-          <label for="gateCode">Access code</label>
-          <input type="password" id="gateCode" required placeholder="Enter code" autocomplete="off" />
+          <label for="gateEmail">Admin email</label>
+          <input type="email" id="gateEmail" required autocomplete="username" />
         </div>
-        <button type="submit" class="btn btn-primary btn-block btn-lg">Unlock admin panel</button>
+        <div class="field">
+          <label for="gatePassword">Password</label>
+          <input type="password" id="gatePassword" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Sign in to admin</button>
       </form>
-
-      <p class="form-note">Demo access code: <strong>2026DOKAN</strong></p>
     </div>
   </div>
 
@@ -46,6 +48,7 @@
       <button class="chip admin-tab chip-active" data-tab="products">Products</button>
       <button class="chip admin-tab" data-tab="users">Users</button>
       <button class="chip admin-tab" data-tab="orders">Orders</button>
+      <button class="chip admin-tab" data-tab="sellers">Seller requests</button>
     </div>
 
     <!-- PRODUCTS -->
@@ -71,7 +74,7 @@
             <input type="text" id="newCategoryCustom" placeholder="e.g. Sportswear" />
           </div>
           <div class="field">
-            <label for="newPrice">Price (USD)</label>
+            <label for="newPrice">Price (BDT ৳)</label>
             <input type="number" id="newPrice" min="0" step="0.01" required />
           </div>
           <div class="field">
@@ -79,17 +82,38 @@
             <input type="number" id="newStock" min="0" step="1" required />
           </div>
           <div class="field">
-            <label for="newImage">Image URL (optional)</label>
+            <label for="newBrand">Brand (optional)</label>
+            <input type="text" id="newBrand" placeholder="e.g. Tecno" />
+          </div>
+          <div class="field">
+            <label>Colours (optional)</label>
+            <div id="newColourPicker"></div>
+          </div>
+          <div class="field">
+            <label for="newComparePrice">Original price (optional, shown struck through)</label>
+            <input type="number" id="newComparePrice" min="0" step="0.01" />
+          </div>
+          <div class="field">
+            <label for="newImage">Main image URL (optional)</label>
             <input type="url" id="newImage" placeholder="https://…" />
           </div>
           <div class="field">
+            <label for="newExtraImages">More image URLs (optional, one per line)</label>
+            <textarea id="newExtraImages" rows="3" placeholder="https://…&#10;https://…"></textarea>
+          </div>
+          <div class="field">
             <label for="newDescription">Description</label>
-            <textarea id="newDescription" required></textarea>
+            <div id="newDescription" class="rich-editor" data-rich contenteditable="true" data-placeholder="Type or paste product details here. Headings, bullets and bold text are kept."></div>
           </div>
           <button type="submit" class="btn btn-primary btn-block">Add product</button>
           <p class="form-success" id="addProductMsg">Product added ✓</p>
         </form>
       </div>
+    </section>
+
+    <!-- SELLER REQUESTS -->
+    <section class="admin-panel" data-panel="sellers">
+      <div id="sellerRequestList"></div>
     </section>
 
     <!-- USERS (linked to their orders) -->
@@ -109,10 +133,13 @@
 <footer id="siteFooter"></footer>
 
 <script src="js/error-handler.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js"></script>
+<script src="js/supabase-client.js"></script>
 <script src="js/db.js"></script>
 <script src="js/theme.js"></script>
 <script src="js/auth.js"></script>
 <script src="js/components.js"></script>
 <script src="js/admin.js"></script>
+<script src="js/admin-sellers.js"></script>
 </body>
 </html>

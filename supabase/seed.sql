@@ -1,0 +1,18 @@
+-- Seed the 14 demo products that used to live in js/db.js.
+-- created_at descends by 1s per row so p01 shows first, same as before.
+insert into public.products (id, name, category, price, stock, image, description, created_at) values
+  ('p01', 'Wireless Headphones', 'Electronics', 89.99, 24, 'https://picsum.photos/seed/dokan-headphones/600/600', 'Over-ear wireless headphones with active noise cancellation and 30-hour battery life. Foldable design, plush ear cushions, and a travel case included.', now() - interval '0 seconds'),
+  ('p02', 'Smart Watch', 'Electronics', 129, 15, 'https://picsum.photos/seed/dokan-smartwatch/600/600', 'Track workouts, heart rate, and sleep. Always-on AMOLED display, 5-day battery, and swim-proof design.', now() - interval '1 seconds'),
+  ('p03', 'Bluetooth Speaker', 'Electronics', 49.5, 40, 'https://picsum.photos/seed/dokan-speaker/600/600', 'Compact speaker with room-filling sound, 12-hour battery, and IPX6 water resistance. Pairs with two devices at once.', now() - interval '2 seconds'),
+  ('p04', 'Mechanical Keyboard', 'Electronics', 74, 18, 'https://picsum.photos/seed/dokan-keyboard/600/600', 'Hot-swappable mechanical keyboard with tactile brown switches, per-key RGB, and a aircraft-grade aluminium frame.', now() - interval '3 seconds'),
+  ('p05', 'Denim Jacket', 'Fashion', 59.99, 30, 'https://picsum.photos/seed/dokan-jacket/600/600', 'Classic mid-wash denim jacket with a relaxed fit, button front, and chest pockets. A wardrobe staple for every season.', now() - interval '4 seconds'),
+  ('p06', 'Leather Sneakers', 'Fashion', 84, 22, 'https://picsum.photos/seed/dokan-sneakers/600/600', 'Hand-finished leather sneakers with a cushioned insole and a grip rubber sole built for everyday walking.', now() - interval '5 seconds'),
+  ('p07', 'Sunglasses', 'Fashion', 24.99, 50, 'https://picsum.photos/seed/dokan-sunglasses/600/600', 'UV400 protective lenses in a lightweight acetate frame. Comes with a hard case and cleaning cloth.', now() - interval '6 seconds'),
+  ('p08', 'Canvas Tote Bag', 'Fashion', 19.5, 60, 'https://picsum.photos/seed/dokan-tote/600/600', 'Heavy-duty canvas tote with reinforced stitching and an interior pocket. Big enough for a day of errands.', now() - interval '7 seconds'),
+  ('p09', 'Ceramic Mug Set', 'Home & Living', 22, 35, 'https://picsum.photos/seed/dokan-mug/600/600', 'Set of two hand-glazed ceramic mugs, microwave and dishwasher safe. Each piece is subtly one of a kind.', now() - interval '8 seconds'),
+  ('p10', 'Table Lamp', 'Home & Living', 39.99, 20, 'https://picsum.photos/seed/dokan-lamp/600/600', 'Warm-glow table lamp with a linen shade and a solid oak base. Three-step touch dimmer built in.', now() - interval '9 seconds'),
+  ('p11', 'Woven Throw Blanket', 'Home & Living', 34.5, 28, 'https://picsum.photos/seed/dokan-blanket/600/600', 'Soft cotton-blend throw, woven in a classic diamond pattern. Machine washable and generously sized.', now() - interval '10 seconds'),
+  ('p12', 'Minimalist Notebook Set', 'Stationery', 12, 70, 'https://picsum.photos/seed/dokan-notebook/600/600', 'Pack of three dot-grid notebooks with a stitched spine and a slim elastic closure. Fountain-pen friendly paper.', now() - interval '11 seconds'),
+  ('p13', 'The Design of Everyday Things', 'Books', 18, 25, 'https://picsum.photos/seed/dokan-book1/600/600', 'Don Norman''s classic on how good design bridges the gap between people and the objects they use.', now() - interval '12 seconds'),
+  ('p14', 'Atomic Habits', 'Books', 16.5, 33, 'https://picsum.photos/seed/dokan-book2/600/600', 'James Clear''s practical guide to building good habits and breaking bad ones, one small change at a time.', now() - interval '13 seconds')
+on conflict (id) do nothing;

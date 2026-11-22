@@ -4,11 +4,11 @@
 
 function cartRow(item) {
   return `
-    <div class="cart-row" data-id="${item.productId}">
+    <div class="cart-row" data-id="${escapeHtml(item.key)}">
       <img src="${item.product.image}" alt="${escapeHtml(item.product.name)}" />
       <div class="cart-row-info">
         <a href="product.html?id=${item.productId}"><h3>${escapeHtml(item.product.name)}</h3></a>
-        <p class="muted">${escapeHtml(item.product.category)} · ${formatPrice(item.product.price)} each</p>
+        <p class="muted">${escapeHtml(item.product.category)}${item.color ? ` · Colour: ${escapeHtml(item.color)}` : ""} · ${formatPrice(item.product.price)} each</p>
       </div>
       <div class="qty-stepper qty-stepper-sm">
         <button data-action="minus">−</button>
@@ -69,7 +69,7 @@ function renderCart() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+whenReady(() => {
   renderHeader({ showSearch: false });
   renderFooter();
   renderCart();
